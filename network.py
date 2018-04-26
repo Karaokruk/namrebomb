@@ -13,12 +13,13 @@ CHARACTER_CODE = 1
 MOVE_CODE = 2
 BOMB_CODE = 3
 MSG_CODE = 4
+PM_CODE = 5
 
 SERVER_SIZE = 4
 
 MESSAGE_SIZE = 8
 
-FORBIDDEN_CHARACTERS = ['\n', ' ', ':', '|', ',', '(', ')']
+FORBIDDEN_CHARACTERS = ['\n', ' ', ':', '|', ',', '(', ')', '>', '*']
 
 def character_to_str(character):
     tab = [str(character.kind), character.nickname, str(character.pos), str(character.direction), str(character.health)]
@@ -58,16 +59,32 @@ def str_to_position(position_str):
     return (int(x[1]), int(y[0]))
 
 
-def fun_send_msg(s,nickname) :
+def hour_string():
+    return "(" + str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ") "
+
+def fun_send_msg(s, nickname) :
     while True:
         msg = input("")
         if(msg != "" and msg != " "):
-            msg = "(" + str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ") " + NICKNAME_COLOR + nickname + DEFAULT_COLOR + " : " + msg
-            print(msg)
-            msg = "msg:" + msg
-            msg = msg.encode()
-            send_size(s,msg)
-            s.send(msg)
+            if msg[0] == '>':
+                tab = msg.split(" ", 1)
+                if not len(tab) <= 1:
+                    msg = tab[1]
+                    receiver = tab[0].split(">")[1]
+                    print(PM_COLOR + hour_string() + "to " + NICKNAME_COLOR + receiver + PM_COLOR + " : " + msg + DEFAULT_COLOR)
+                    msg = "pm:" + receiver + " " + PM_COLOR + hour_string() + "from " + NICKNAME_COLOR + nickname + PM_COLOR + " : " + msg + DEFAULT_COLOR
+                    msg = msg.encode()
+                    send_size(s, msg)
+                    s.send(msg)
+                else:
+                    print(SERVER_CONSOLE_COLOR + "Please type a message." + DEFAULT_COLOR)
+            else:
+                msg = CHAT_COLOR + hour_string() + NICKNAME_COLOR + nickname + CHAT_COLOR + " : " + msg + DEFAULT_COLOR
+                print(msg)
+                msg = "msg:" + msg
+                msg = msg.encode()
+                send_size(s, msg)
+                s.send(msg)
 
 
 def parse_message(msg):
@@ -81,6 +98,8 @@ def parse_message(msg):
         return BOMB_CODE
     elif msg == "msg":
         return MSG_CODE
+    elif msg == "pm":
+        return PM_CODE
     return REMOVE_CODE
     
 
@@ -227,28 +246,24 @@ class NetworkServerController:
                             print_nb_connected_people(len(self.model.characters))
                 
             else:
-                msg_size = request.recv(MESSAGE_SIZE)
-                if not msg_size.decode():
+                encoded_msg_size = request.recv(MESSAGE_SIZE)
+                msg_size = encoded_msg_size.decode()
+                if not msg_size:
                     request.close()
                     self.client_list.remove(request)
-                    for (c, n) in self.player_list :
+                    for (c, n) in self.player_list:
                         if request == c:
                             char = self.model.look(n)
                             if char:
                                 self.model.quit(n)
-                            
                                 self.player_list.remove((c, n))
                                 for client in self.client_list:
                                     send_quit_character(client, n) 
                     print_nb_connected_people(len(self.model.characters))
                     return True
-                msg = request.recv(int(msg_size.decode()))
-                for c in self.client_list:
-                    if c != request:
-                        c.send(msg_size)
-                        c.send(msg)
-                msg = msg.decode()
-                
+
+                encoded_msg = request.recv(int(msg_size))
+                msg = encoded_msg.decode()
                 
                 tab = msg.split(":")
                 msg_type = parse_message(tab[0])
@@ -265,7 +280,24 @@ class NetworkServerController:
                     self.model.drop_bomb(tab[1])
                 if msg_type == MSG_CODE:
                     tab.remove(tab[0])
-                    print(CHAT_COLOR + ":".join(tab) + DEFAULT_COLOR)
+                    print(":".join(tab))
+                if msg_type == PM_CODE:
+                    tab.remove(tab[0])
+                    msg = ":".join(tab)
+                    print("EL MESAGE : " + msg)
+                    split_msg = msg.split(" ", 1)
+                    for (c, n) in self.player_list:
+                        print(split_msg[0] + " et " + n)
+                        if split_msg[0] == n:
+                            msg_to_send = "pm:" + split_msg[1]
+                            msg_to_send = msg_to_send.encode()
+                            send_size(c, msg_to_send)
+                            c.send(msg_to_send)
+                else:
+                    for c in self.client_list:
+                        if c != request:
+                            c.send(encoded_msg_size)
+                            c.send(encoded_msg)
         return True
 
 ################################################################################
@@ -391,7 +423,7 @@ class NetworkClientController:
                 self.model.move_character(move_tab[0], int(move_tab[1]))
             if msg_type == BOMB_CODE:
                 self.model.drop_bomb(tab[1])
-            if msg_type == MSG_CODE:
+            if msg_type == MSG_CODE or msg_type == PM_CODE:
                 tab.remove(tab[0])
-                print(CHAT_COLOR + ":".join(tab) + DEFAULT_COLOR)
+                print(":".join(tab))
         return True
