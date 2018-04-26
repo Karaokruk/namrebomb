@@ -308,7 +308,7 @@ class NetworkClientController:
                 self.model.player = i
         fruits_tab = model_tab[2].split("  ")
         for f in fruits_tab:
-            if (b != ""):
+            if (f != ""):
                 self.model.fruits.append(str_to_fruit(self.model.map, f))
         bombs_tab = model_tab[3].split("  ")
         for b in bombs_tab:
