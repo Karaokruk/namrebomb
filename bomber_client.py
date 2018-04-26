@@ -33,7 +33,7 @@ model = Model()
 client = NetworkClientController(model, host, port, nickname)
 view = GraphicView(model, nickname)
 kb = KeyboardController(client)
-chat = threading.Thread(None, fun_send_msg, None, (client.serv_connexion,))
+chat = threading.Thread(None, fun_send_msg, None, (client.serv_connexion,nickname))
 chat.daemon = True
 chat.start()
 

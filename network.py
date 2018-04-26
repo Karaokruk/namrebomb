@@ -5,6 +5,7 @@ from model import *
 import socket
 import select
 import threading
+import time
 
 
 REMOVE_CODE = 0
@@ -57,11 +58,11 @@ def str_to_position(position_str):
     return (int(x[1]), int(y[0]))
 
 
-def fun_send_msg(s) :
+def fun_send_msg(s,nickname) :
     while True:
         msg_a_envoyer = input("")
         if(msg_a_envoyer != "" and msg_a_envoyer != " "):
-            msg_a_envoyer = "msg:" + msg_a_envoyer
+            msg_a_envoyer = "msg:" + nickname + "(" + str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ") : " + msg_a_envoyer
             msg_a_envoyer = msg_a_envoyer.encode()
             send_size(s,msg_a_envoyer)
             s.send(msg_a_envoyer)
@@ -261,7 +262,8 @@ class NetworkServerController:
                 if msg_type == BOMB_CODE:
                     self.model.drop_bomb(tab[1])
                 if msg_type == MSG_CODE:
-                    print(tab[1])
+                    tab.remove(tab[0])
+                    print(":".join(tab))
 
         # ...
         return True
@@ -388,7 +390,8 @@ class NetworkClientController:
                 move_tab = tab[1].split("|")
                 self.model.move_character(move_tab[0], int(move_tab[1]))
             if msg_type == BOMB_CODE:
-                self.model.drop_bomb(tab[1])
+                self.model.drop_bomb(tab[1]+tab[2])
             if msg_type == MSG_CODE:
-                print(tab[1])
+                tab.remove(tab[0])
+                print(":".join(tab))
         return True
