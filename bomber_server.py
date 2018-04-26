@@ -35,9 +35,13 @@ clock = pygame.time.Clock()
 
 model = Model()
 model.load_map(map_file)
-for _ in range(10): model.add_fruit()
+#for _ in range(10): model.add_fruit()
 server = NetworkServerController(model, port)
 #view = GraphicView(model, "server")
+end = False
+commands = threading.Thread(None, fun_commands, None, (server,))
+commands.daemon = True
+commands.start()
 
 # main loop
 while True:
@@ -46,8 +50,9 @@ while True:
     server.tick(dt, map_file)
     model.tick(dt)
     #view.tick(dt)
+    if not commands.is_alive():
+        break
 
 # quit
-print("Game Over!")
+print("Thanks for playing!")
 pygame.quit()
-exit()
