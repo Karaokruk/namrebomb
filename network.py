@@ -7,7 +7,7 @@ import select
 import threading
 import time
 
-
+# messages codes
 REMOVE_CODE = 0
 CHARACTER_CODE = 1
 MOVE_CODE = 2
@@ -16,13 +16,10 @@ MSG_CODE = 4
 FRUIT_CODE = 5
 PM_CODE = 6
 
-
+# server properites
 SERVER_SIZE = 4
-
 MESSAGE_SIZE = 8
-
 FRUIT_SPAWN_LIMIT = 15
-
 FORBIDDEN_CHARACTERS = ['\n', ' ', ':', '|', ',', '(', ')', '>', '*']
 
 def character_to_str(character):
@@ -90,7 +87,7 @@ def fun_send_msg(s, nickname) :
                 send_size(s, msg)
                 s.send(msg)
 
-def command_kill(command, server):
+def kill_command(command, server):
     if(len(command) != 2):
         print("To kill somebody, type \"kill <this horrible person nickname>\" \n you can also kill every player by typing \"kill *\", but that's not very nice...")
     elif not server.player_list:
@@ -115,36 +112,36 @@ def command_kill(command, server):
                     server.client_list.remove(c)
             server.model.kill_character(command[1])
         else:
-            print(command[1]+" wasn't found on the server.")
+            print(command[1] + " wasn't found on the server.")
 
 def fun_commands(server):
     while True:
         command = input("")
-        if(command == "quit" or command == "exit"):
+        if command == "quit" or command == "exit":
             break
         command = command.split(" ")
-        if(command[0] == "kill"):
-            command_kill(command, server)
-        elif(command[0] == "fruit"):
+        if command[0] == "kill":
+            kill_command(command, server)
+        elif command[0] == "fruit":
             if(len(command)==1):
-                fruit = Fruit(random.choice(FRUITS),server.model.map,server.model.map.random())
+                fruit = Fruit(random.choice(FRUITS), server.model.map, server.model.map.random())
                 server.model.fruits.append(fruit)
                 for c in server.client_list:
-                    send_fruit(c,fruit)
-            elif(len(command) > 2 or not (command[1].isdigit())):
-                print("you can add a fruit on the board with the command \"fruit\" (this one is hard to guess) \n to add multiple fruits, type \"fruit <number of fruit in digits>\"")
+                    send_fruit(c, fruit)
+            elif (len(command) > 2 or not (command[1].isdigit())):
+                print(SERVER_CONSOLE_COLOR + "You can add a fruit on the board with the command \"fruit\" (this one is hard to guess) \n to add multiple fruits, type \"fruit <number of fruit in digits>\"" + DEFAULT_COLOR)
             else:
                 nb = int(command[1])
-                if(nb > FRUIT_SPAWN_LIMIT):
+                if nb > FRUIT_SPAWN_LIMIT:
                     nb = FRUIT_SPAWN_LIMIT
-                    print("don't spawn too much fruits please, that's not funny. \n" + str(FRUIT_SPAWN_LIMIT) +" is enough")
+                    print(SERVER_CONSOLE_COLOR + "Don't spawn too much fruits please, that's not funny. \n" + str(FRUIT_SPAWN_LIMIT) +" is enough" + DEFAULT_COLOR)
                 for i in range(nb):
-                    fruit = Fruit(random.choice(FRUITS), server.model.map,server.model.map.random())
+                    fruit = Fruit(random.choice(FRUITS), server.model.map, server.model.map.random())
                     server.model.fruits.append(fruit)
                     for c in server.client_list:
-                        send_fruit(c,fruit)
+                        send_fruit(c, fruit)
         else:
-            print("command unknown!")
+            print(SERVER_CONSOLE_COLOR + "Command unknown!" + DEFAULT_COLOR)
 
 def parse_message(msg):
     if msg == "remove":
@@ -209,6 +206,7 @@ def send_quit_character(connexion, nickname):
 
 def print_nb_connected_people(nb_people):
     print(CONNECTED_PEOPLE_COLOR + "{}/{} people connected.".format(nb_people, SERVER_SIZE) + DEFAULT_COLOR)
+
 
 ################################################################################
 #                          NETWORK SERVER CONTROLLER                           #
@@ -351,10 +349,8 @@ class NetworkServerController:
                 if msg_type == PM_CODE:
                     tab.remove(tab[0])
                     msg = ":".join(tab)
-                    print("EL MESAGE : " + msg)
                     split_msg = msg.split(" ", 1)
                     for (c, n) in self.player_list:
-                        print(split_msg[0] + " et " + n)
                         if split_msg[0] == n:
                             msg_to_send = "pm:" + split_msg[1]
                             msg_to_send = msg_to_send.encode()
