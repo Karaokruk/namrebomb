@@ -293,6 +293,7 @@ class NetworkClientController:
         
         self.decode_base_model(model_str.decode(), nickname)
         print_nb_connected_people(len(self.model.characters))
+        print("EL MODEL : ", model_str)
 
 
     def decode_base_model(self, model_str, nickname):
@@ -300,13 +301,15 @@ class NetworkClientController:
         self.model.load_map(model_tab[0])
         characters_tab = model_tab[1].split("  ")
         for c in characters_tab:
-            self.model.characters.append(str_to_character(self.model.map, c))
+            if (c != ""):
+                self.model.characters.append(str_to_character(self.model.map, c))
         for i in self.model.characters:
             if i.nickname == nickname:
                 self.model.player = i
         fruits_tab = model_tab[2].split("  ")
         for f in fruits_tab:
-            self.model.fruits.append(str_to_fruit(self.model.map, f))
+            if (b != ""):
+                self.model.fruits.append(str_to_fruit(self.model.map, f))
         bombs_tab = model_tab[3].split("  ")
         for b in bombs_tab:
             if (b != ""):
