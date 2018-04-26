@@ -50,3 +50,4 @@ while True:
 # quit
 print("Game Over!")
 pygame.quit()
+exit()
