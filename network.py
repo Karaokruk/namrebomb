@@ -11,6 +11,7 @@ REMOVE_CODE = 0
 CHARACTER_CODE = 1
 MOVE_CODE = 2
 BOMB_CODE = 3
+MSG_CODE = 4
 
 SERVER_SIZE = 4
 
@@ -57,15 +58,16 @@ def str_to_position(position_str):
 
 
 def parse_message(msg):
-    tab = msg.split(":")
-    if tab[0] == "remove":
+    if msg == "remove":
         return REMOVE_CODE
-    elif tab[0] == "character":
+    elif msg == "character":
         return CHARACTER_CODE
-    elif tab[0] == "move":
+    elif msg == "move":
         return MOVE_CODE
-    elif tab[0] == "bomb":
+    elif msg == "bomb":
         return BOMB_CODE
+    elif msg == "msg":
+        return MSG_CODE
     return REMOVE_CODE
     
 
@@ -247,6 +249,8 @@ class NetworkServerController:
                     self.model.move_character(move_tab[0], int(move_tab[1]))
                 if msg_type == BOMB_CODE:
                     self.model.drop_bomb(tab[1])
+                if msg_type == MSG_CODE:
+                    print(tab[1])
 
         # ...
         return True
@@ -254,6 +258,8 @@ class NetworkServerController:
 ################################################################################
 #                          NETWORK CLIENT CONTROLLER                           #
 ################################################################################
+
+
 
 
 class NetworkClientController:
@@ -372,4 +378,6 @@ class NetworkClientController:
                 self.model.move_character(move_tab[0], int(move_tab[1]))
             if msg_type == BOMB_CODE:
                 self.model.drop_bomb(tab[1])
+            if msg_type == MSG_CODE:
+                    print(tab[1])
         return True
