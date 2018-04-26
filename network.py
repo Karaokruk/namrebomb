@@ -4,6 +4,7 @@
 from model import *
 import socket
 import select
+import threading
 
 
 REMOVE_CODE = 0
@@ -189,26 +190,26 @@ class NetworkServerController:
                     msg_size = client.recv(MESSAGE_SIZE)
                     if not msg_size:
                         nickname_taken_msg = b""
-                        client.send(nickname_taken_msg) 
-                    nickname = client.recv(int(msg_size.decode()))
-                    nickname = nickname.decode()
-                    is_nickname_ok = check_nickname(self.model, nickname)
-                    
-                    if not is_nickname_ok:
-                        nickname_taken_msg = b""
                         client.send(nickname_taken_msg)
                     else:
+                        nickname = client.recv(int(msg_size.decode()))
+                        nickname = nickname.decode()
+                        is_nickname_ok = check_nickname(self.model, nickname)
                         
-                        new_character = self.model.add_character(nickname)
-                        nickname_taken_msg = b"1"
-                        client.send(nickname_taken_msg)
-                        send_base_model(client, self.model, map_file)
-                        send_character(self.client_list, new_character)
-                
-                        self.client_list.append(client)
-                        self.player_list.append((client, nickname))
-                print("{} joins the server.".format(new_character.nickname))
-                print_nb_connected_people(len(self.model.characters))
+                        if not is_nickname_ok:
+                            nickname_taken_msg = b""
+                            client.send(nickname_taken_msg)
+                        else:
+                            new_character = self.model.add_character(nickname)
+                            nickname_taken_msg = b"1"
+                            client.send(nickname_taken_msg)
+                            send_base_model(client, self.model, map_file)
+                            send_character(self.client_list, new_character)
+                    
+                            self.client_list.append(client)
+                            self.player_list.append((client, nickname))
+                            print("{} joins the server.".format(new_character.nickname))
+                            print_nb_connected_people(len(self.model.characters))
                 
             else:
                 msg_size = request.recv(MESSAGE_SIZE)
