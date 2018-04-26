@@ -60,12 +60,14 @@ def str_to_position(position_str):
 
 def fun_send_msg(s,nickname) :
     while True:
-        msg_a_envoyer = input("")
-        if(msg_a_envoyer != "" and msg_a_envoyer != " "):
-            msg_a_envoyer = "msg:" + nickname + "(" + str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ") : " + msg_a_envoyer
-            msg_a_envoyer = msg_a_envoyer.encode()
-            send_size(s,msg_a_envoyer)
-            s.send(msg_a_envoyer)
+        msg = input("")
+        if(msg != "" and msg != " "):
+            msg = "(" + str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ") " + NICKNAME_COLOR + nickname + DEFAULT_COLOR + " : " + msg
+            print(msg)
+            msg = "msg:" + msg
+            msg = msg.encode()
+            send_size(s,msg)
+            s.send(msg)
 
 
 def parse_message(msg):
@@ -120,7 +122,7 @@ def send_quit_character(connexion, nickname):
 
 
 def print_nb_connected_people(nb_people):
-    print("{}/{} people connected.".format(nb_people, SERVER_SIZE))
+    print(CONNECTED_PEOPLE_COLOR + "{}/{} people connected.".format(nb_people, SERVER_SIZE) + DEFAULT_COLOR)
 
 ################################################################################
 #                          NETWORK SERVER CONTROLLER                           #
@@ -178,7 +180,7 @@ class NetworkServerController:
         self.main_connexion.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.main_connexion.bind((self.host, self.port))
         self.main_connexion.listen(1)
-        print("Have fun <3")
+        print(SERVER_CONSOLE_COLOR + "Have fun <3" + DEFAULT_COLOR)
         print_nb_connected_people(0)
 
 
@@ -221,7 +223,7 @@ class NetworkServerController:
                     
                             self.client_list.append(client)
                             self.player_list.append((client, nickname))
-                            print("{} joins the server.".format(new_character.nickname))
+                            print(JOIN_COLOR + "{} joins the server.".format(new_character.nickname) + DEFAULT_COLOR)
                             print_nb_connected_people(len(self.model.characters))
                 
             else:
@@ -233,7 +235,7 @@ class NetworkServerController:
                         if request == c:
                             char = self.model.look(n)
                             if char:
-                                self.model.kill_character(n)
+                                self.model.quit(n)
                             
                                 self.player_list.remove((c, n))
                                 for client in self.client_list:
@@ -251,7 +253,7 @@ class NetworkServerController:
                 tab = msg.split(":")
                 msg_type = parse_message(tab[0])
                 if msg_type == REMOVE_CODE:
-                    self.model.kill_character(tab[1])
+                    self.model.quit(tab[1])
                     self.player_list.remove((request, tab[1]))
                     request.close()
                     self.client_list.remove(request)
@@ -263,9 +265,7 @@ class NetworkServerController:
                     self.model.drop_bomb(tab[1])
                 if msg_type == MSG_CODE:
                     tab.remove(tab[0])
-                    print(":".join(tab))
-
-        # ...
+                    print(CHAT_COLOR + ":".join(tab) + DEFAULT_COLOR)
         return True
 
 ################################################################################
@@ -290,7 +290,7 @@ class NetworkClientController:
         # Can i connect to server ?
         can_connect = self.serv_connexion.recv(1)
         if ( can_connect.decode == ""):
-            print("Server is full.")
+            print(SERVER_CONSOLE_COLOR + "Server is full." + DEFAULT_COLOR)
             sys.exit(1)
 
         # Here is my nickname
@@ -300,11 +300,11 @@ class NetworkClientController:
         #Is my nickname available?
         nickname_ok = self.serv_connexion.recv(1)
         if ( nickname_ok.decode() == ""):
-            print("nickname \"{}\" already used (or lame)!".format(nickname))
+            print(SERVER_CONSOLE_COLOR + "nickname \"{}\" already used (or lame)!".format(nickname) + DEFAULT_COLOR)
             sys.exit(1)
 
         # Thanks you for the model
-        print("Welcome to the server.")
+        print(SERVER_CONSOLE_COLOR + "Welcome to the server." + DEFAULT_COLOR)
         msg_size = self.serv_connexion.recv(MESSAGE_SIZE)
         if not msg_size :
             sys.exit(1)
@@ -369,7 +369,7 @@ class NetworkClientController:
         for request in request_list:
             msg_size = self.serv_connexion.recv(MESSAGE_SIZE)
             if not msg_size:
-                print("May the server rest in peace.")
+                print(SERVER_CONSOLE_COLOR + "May the server rest in peace." + DEFAULT_COLOR)
                 return False
             msg = self.serv_connexion.recv(int(msg_size.decode()))
             
@@ -379,19 +379,19 @@ class NetworkClientController:
             if msg_type == REMOVE_CODE:
                 char = self.model.look(tab[1])
                 if char:
-                    self.model.kill_character(tab[1])
+                    self.model.quit(tab[1])
                 print_nb_connected_people(len(self.model.characters))
             if msg_type == CHARACTER_CODE:
                 character = str_to_character(self.model.map, tab[1])
                 self.model.characters.append(character)
-                print("{} joins the server.".format(character.nickname))
+                print(JOIN_COLOR + "{} joins the server.".format(character.nickname) + DEFAULT_COLOR)
                 print_nb_connected_people(len(self.model.characters))
             if msg_type == MOVE_CODE:
                 move_tab = tab[1].split("|")
                 self.model.move_character(move_tab[0], int(move_tab[1]))
             if msg_type == BOMB_CODE:
-                self.model.drop_bomb(tab[1]+tab[2])
+                self.model.drop_bomb(tab[1])
             if msg_type == MSG_CODE:
                 tab.remove(tab[0])
-                print(":".join(tab))
+                print(CHAT_COLOR + ":".join(tab) + DEFAULT_COLOR)
         return True

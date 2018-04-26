@@ -43,6 +43,14 @@ COUNTDOWN = 5
 IMMUNITY = 1500 # in ms
 DISARMED = 2000 # in ms
 
+# text colors
+SERVER_CONSOLE_COLOR = "\x1b[1;31;40m"
+NICKNAME_COLOR = "\x1b[1;33;40m"
+JOIN_COLOR = "\x1b[1;32;40m"
+CONNECTED_PEOPLE_COLOR = "\x1b[1;34;40m"
+CHAT_COLOR = "\x1b[0m"
+DEFAULT_COLOR = "\x1b[0m"
+
 ### Class Map ###
 
 class Map:
@@ -150,7 +158,7 @@ class Character:
     def eat(self, fruit):
         if fruit.pos[X] == self.pos[X] and fruit.pos[Y] == self.pos[Y]:
             self.health += 10
-            print("{}\'s health: {}".format(self.nickname, self.health))
+            print(SERVER_CONSOLE_COLOR + "{}\'s health: {}".format(self.nickname, self.health) + DEFAULT_COLOR)
             return True
         return False
 
@@ -169,9 +177,9 @@ class Character:
         if ( horizontal or vertical ):
             self.health -= 10
             self.immunity = IMMUNITY
-            print("{}\'s health: {}".format(self.nickname, self.health))
+            print(SERVER_CONSOLE_COLOR + "{}\'s health: {}".format(self.nickname, self.health) + DEFAULT_COLOR)
         if self.health <= 0:
-            print("{} is dead!".format(self.nickname))
+            print(SERVER_CONSOLE_COLOR + "{} is dead!".format(self.nickname) + DEFAULT_COLOR)
             return True
         return False
 
@@ -202,11 +210,11 @@ class Model:
     def kill_character(self, nickname):
         character = self.look(nickname)
         if not character:
-            print("Error: nickname {} not found!".format(nickname))
+            print(SERVER_CONSOLE_COLOR + "Error: nickname {} not found!".format(nickname) + DEFAULT_COLOR)
             sys.exit(1)
         self.characters.remove(character)
         if self.player == character: self.player = None
-        print("=> kill \"{}\"".format(nickname))
+        print(SERVER_CONSOLE_COLOR + "=> kill \"{}\"".format(nickname) + DEFAULT_COLOR)
         return character
 
     # quit game
@@ -216,7 +224,7 @@ class Model:
             cont = False
         character = self.look(nickname)
         if character: self.kill_character(nickname)
-        print("=> quit \"{}\"".format(nickname))
+        print(SERVER_CONSOLE_COLOR + "=> quit \"{}\"".format(nickname) + DEFAULT_COLOR)
         return cont
 
     # add a new fruit
@@ -230,7 +238,7 @@ class Model:
     def add_character(self, nickname, isplayer = False, kind = None, pos = None):
         character = self.look(nickname)
         if character:
-            print("Error: nickname \"{}\" already used!".format(nickname))
+            print(SERVER_CONSOLE_COLOR + "Error: nickname \"{}\" already used!".format(nickname) + DEFAULT_COLOR)
             sys.exit(1)
         if pos is None: pos = self.map.random()
         if kind is None: kind = random.choice(CHARACTERS)
@@ -244,7 +252,7 @@ class Model:
     def drop_bomb(self, nickname):
         character = self.look(nickname)
         if not character:
-            print("Error: nickname \"{}\" not found!".format(nickname))
+            print(SERVER_CONSOLE_COLOR + "Error: nickname \"{}\" not found!".format(nickname) + DEFAULT_COLOR)
             sys.exit(1)
         if character.disarmed == 0:
             self.bombs.append(Bomb(self.map, character.pos))
@@ -255,7 +263,7 @@ class Model:
     def move_character(self, nickname, direction):
         character = self.look(nickname)
         if not character:
-            print("Error: nickname \"{}\" not found!".format(nickname))
+            print(SERVER_CONSOLE_COLOR + "Error: nickname \"{}\" not found!".format(nickname) + DEFAULT_COLOR)
             sys.exit(1)
         character.move(direction)
         #print("=> move {} \"{}\" at position ({},{})".format(DIRECTIONS_STR[direction], nickname, character.pos[X], character.pos[Y]))
