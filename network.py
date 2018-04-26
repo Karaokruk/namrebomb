@@ -57,6 +57,16 @@ def str_to_position(position_str):
     return (int(x[1]), int(y[0]))
 
 
+def fun_send_msg(s) :
+    while True:
+        msg_a_envoyer = input("")
+        if(msg_a_envoyer != "" and msg_a_envoyer != " "):
+            msg_a_envoyer = "msg:" + msg_a_envoyer
+            msg_a_envoyer = msg_a_envoyer.encode()
+            send_size(s,msg_a_envoyer)
+            s.send(msg_a_envoyer)
+
+
 def parse_message(msg):
     if msg == "remove":
         return REMOVE_CODE
@@ -244,6 +254,7 @@ class NetworkServerController:
                     self.player_list.remove((request, tab[1]))
                     request.close()
                     self.client_list.remove(request)
+                    print_nb_connected_people(len(self.model.characters))
                 if msg_type == MOVE_CODE:
                     move_tab = tab[1].split("|")
                     self.model.move_character(move_tab[0], int(move_tab[1]))
@@ -299,7 +310,6 @@ class NetworkClientController:
         
         self.decode_base_model(model_str.decode(), nickname)
         print_nb_connected_people(len(self.model.characters))
-        print("EL MODEL : ", model_str)
 
 
     def decode_base_model(self, model_str, nickname):
@@ -368,6 +378,7 @@ class NetworkClientController:
                 char = self.model.look(tab[1])
                 if char:
                     self.model.kill_character(tab[1])
+                print_nb_connected_people(len(self.model.characters))
             if msg_type == CHARACTER_CODE:
                 character = str_to_character(self.model.map, tab[1])
                 self.model.characters.append(character)
@@ -379,5 +390,5 @@ class NetworkClientController:
             if msg_type == BOMB_CODE:
                 self.model.drop_bomb(tab[1])
             if msg_type == MSG_CODE:
-                    print(tab[1])
+                print(tab[1])
         return True

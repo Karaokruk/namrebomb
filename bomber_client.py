@@ -17,15 +17,6 @@ print("pygame version: ", pygame.version.ver)
 #                                 MAIN                                         #
 ################################################################################
 
-def fun_send_msg(s) :
-    while True:
-        msg_a_envoyer = input("> ")
-        if(msg_a_envoyer != "" and msg_a_envoyer != " "):
-            msg_a_envoyer = "msg:" + msg_a_envoyer
-            msg_a_envoyer = msg_a_envoyer.encode()
-            send_size(s,msg_a_envoyer)
-            s.send(msg_a_envoyer)
-
 # parse arguments
 if len(sys.argv) != 4:
     print("Usage: {} host port nickname".format(sys.argv[0]))
