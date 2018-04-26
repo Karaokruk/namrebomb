@@ -69,13 +69,6 @@ def parse_message(msg):
     return REMOVE_CODE
     
 
-def send_character(client_list, character):
-    character_str = "character:"
-    character_str += character_to_str(character)
-    for c in client_list:
-        send_size(c, character_str.encode())
-        c.send(character_str.encode())
-
 def send_size(connexion, encoded_msg):
     size_msg = str(len(encoded_msg))
     padding_zero = MESSAGE_SIZE - len(size_msg)
@@ -83,6 +76,13 @@ def send_size(connexion, encoded_msg):
         size_msg = "0" + size_msg
         padding_zero -= 1
     connexion.send(size_msg.encode())
+
+def send_character(client_list, character):
+    character_str = "character:"
+    character_str += character_to_str(character)
+    for c in client_list:
+        send_size(c, character_str.encode())
+        c.send(character_str.encode())
 
 def send_movement(connexion, nickname, direction):
     movement_str = "move:"
