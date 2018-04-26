@@ -71,13 +71,6 @@ def parse_message(msg):
     return REMOVE_CODE
     
 
-def send_character(client_list, character):
-    character_str = "character:"
-    character_str += character_to_str(character)
-    for c in client_list:
-        send_size(c, character_str.encode())
-        c.send(character_str.encode())
-
 def send_size(connexion, encoded_msg):
     size_msg = str(len(encoded_msg))
     padding_zero = MESSAGE_SIZE - len(size_msg)
@@ -85,6 +78,13 @@ def send_size(connexion, encoded_msg):
         size_msg = "0" + size_msg
         padding_zero -= 1
     connexion.send(size_msg.encode())
+
+def send_character(client_list, character):
+    character_str = "character:"
+    character_str += character_to_str(character)
+    for c in client_list:
+        send_size(c, character_str.encode())
+        c.send(character_str.encode())
 
 def send_movement(connexion, nickname, direction):
     movement_str = "move:"
@@ -299,6 +299,7 @@ class NetworkClientController:
         
         self.decode_base_model(model_str.decode(), nickname)
         print_nb_connected_people(len(self.model.characters))
+        print("EL MODEL : ", model_str)
 
 
     def decode_base_model(self, model_str, nickname):
@@ -306,13 +307,15 @@ class NetworkClientController:
         self.model.load_map(model_tab[0])
         characters_tab = model_tab[1].split("  ")
         for c in characters_tab:
-            self.model.characters.append(str_to_character(self.model.map, c))
+            if (c != ""):
+                self.model.characters.append(str_to_character(self.model.map, c))
         for i in self.model.characters:
             if i.nickname == nickname:
                 self.model.player = i
         fruits_tab = model_tab[2].split("  ")
         for f in fruits_tab:
-            self.model.fruits.append(str_to_fruit(self.model.map, f))
+            if (f != ""):
+                self.model.fruits.append(str_to_fruit(self.model.map, f))
         bombs_tab = model_tab[3].split("  ")
         for b in bombs_tab:
             if (b != ""):
