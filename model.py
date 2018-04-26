@@ -49,6 +49,7 @@ NICKNAME_COLOR = "\x1b[1;33;40m"
 JOIN_COLOR = "\x1b[1;32;40m"
 CONNECTED_PEOPLE_COLOR = "\x1b[1;34;40m"
 CHAT_COLOR = "\x1b[0m"
+PM_COLOR = "\x1b[1;35;40m"
 DEFAULT_COLOR = "\x1b[0m"
 
 ### Class Map ###
@@ -214,7 +215,7 @@ class Model:
             sys.exit(1)
         self.characters.remove(character)
         if self.player == character: self.player = None
-        print(SERVER_CONSOLE_COLOR + "=> kill \"{}\"".format(nickname) + DEFAULT_COLOR)
+        #print(SERVER_CONSOLE_COLOR + "=> kill \"{}\"".format(nickname) + DEFAULT_COLOR)
         return character
 
     # quit game
@@ -224,7 +225,7 @@ class Model:
             cont = False
         character = self.look(nickname)
         if character: self.kill_character(nickname)
-        print(SERVER_CONSOLE_COLOR + "=> quit \"{}\"".format(nickname) + DEFAULT_COLOR)
+        print(SERVER_CONSOLE_COLOR + "{} left the game.".format(nickname) + DEFAULT_COLOR)
         return cont
 
     # add a new fruit
