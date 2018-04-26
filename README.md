@@ -57,3 +57,4 @@ There is a [known bug](https://github.com/pygame/pygame/issues/331) in the *pyga
   * https://www.pygame.org
   * https://openclassrooms.com/courses/interface-graphique-PyGame-pour-python/tp-dk-labyrinthe
   * http://ezide.com/games/writing-games.html
+bjr
