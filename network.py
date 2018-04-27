@@ -17,6 +17,7 @@ MSG_CODE = 5
 FRUIT_CODE = 6
 PM_CODE = 7
 HEAL_CODE = 8
+DAMAGE_CODE = 9
 
 # server properites
 SERVER_SIZE = 4
@@ -200,6 +201,29 @@ def command_heal(command, server):
         print("If you want to be a nice person, you can heal people with \"heal <nickname> < number of life points to give>\". \n If no number is given, player will go back to base health. \nTo heal all players, you can type \"*\" instead of the nickname")
         
 
+def command_damage(command, server):
+    if(len(command) == 3 and command[2].isdigit()):
+        if(command[1] == "*"):
+            for char in server.model.characters:
+                damage = int(command[2])
+                char.health -= damage
+                for c in server.client_list:
+                    send_damage(c,char.nickname, damage)
+            print("Everybody took " + command[2] + " points of damage!")
+        else:
+            char = server.model.look(command[1])
+            if not char:
+                print(command[1]+" wasn't found on the server.")
+            else:
+                damage = int(command[2])
+                for c in server.client_list:
+                    send_damage(c,char.nickname, damage)
+                char.health =+ damage
+                print(command[1] + " took " + command[2] + "points of damage !")
+    else:
+        print("If you want to be a bad person, you can inflict damage to people with \"damage <nickname> < number of damage points to give>\". \n To inflict damage to all players, you can type \"*\" instead of the nickname")
+        
+
 def fun_commands(server):
     while True:
         command = input("")
@@ -214,6 +238,8 @@ def fun_commands(server):
             command_bomb(command, server)
         elif command[0] == "heal":
             command_heal(command,server)
+        elif command[0] == "damage":
+            command_damage(command,server)
         else:
             print(SERVER_CONSOLE_COLOR + "Command unknown!" + DEFAULT_COLOR)
 
@@ -236,6 +262,8 @@ def parse_message(msg):
         return PM_CODE
     elif msg == "heal":
         return HEAL_CODE
+    elif msg == "damage":
+        return DAMAGE_CODE
     return REMOVE_CODE
     
 
@@ -293,6 +321,12 @@ def send_healing(connexion, nickname, healing):
     healing_str = healing_str.encode()
     send_size(connexion, healing_str)
     connexion.send(healing_str)
+
+def send_damage(connexion, nickname, damage):
+    damage_str = "damage:" + nickname + ":" + str(damage)
+    damage_str = damage_str.encode()
+    send_size(connexion,damage_str)
+    connexion.send(damage_str)
 
 
 def print_nb_connected_people(nb_people):
@@ -567,27 +601,31 @@ class NetworkClientController:
                 if char:
                     self.model.quit(tab[1])
                 print_nb_connected_people(len(self.model.characters))
-            if msg_type == CHARACTER_CODE:
+            elif msg_type == CHARACTER_CODE:
                 character = str_to_character(self.model.map, tab[1])
                 self.model.characters.append(character)
                 print(JOIN_COLOR + "{} joins the server.".format(character.nickname) + DEFAULT_COLOR)
                 print_nb_connected_people(len(self.model.characters))
-            if msg_type == MOVE_CODE:
+            elif msg_type == MOVE_CODE:
                 move_tab = tab[1].split("|")
                 self.model.move_character(move_tab[0], int(move_tab[1]))
-            if msg_type == BOMB_CODE:
+            elif msg_type == BOMB_CODE:
                 self.model.drop_bomb(tab[1])
-            if msg_type == BOMB2_CODE:
+            elif msg_type == BOMB2_CODE:
                 bomb= str_to_bomb(self.model.map,tab[1])
                 self.model.bombs.append(bomb)
-            if msg_type == FRUIT_CODE:
+            elif msg_type == FRUIT_CODE:
                 fruit= str_to_fruit(self.model.map,tab[1])
                 self.model.fruits.append(fruit)
-            if msg_type == MSG_CODE or msg_type == PM_CODE:
+            elif msg_type == MSG_CODE or msg_type == PM_CODE:
                 tab.remove(tab[0])
                 print(":".join(tab))
-            if msg_type == HEAL_CODE:
+            elif msg_type == HEAL_CODE:
                 char = self.model.look(tab[1])
                 char.health += int(tab[2])
                 print(SERVER_CONSOLE_COLOR + char.nickname + "has been healed, his health is now " + str(char.health) + "!" + DEFAULT_COLOR)
+            elif msg_type == DAMAGE_CODE:
+                char = self.model.look(tab[1])
+                char.health -= int(tab[2])
+                print(SERVER_CONSOLE_COLOR + char.nickname + "took damage, his health is now " + str(char.health) + "!" + DEFAULT_COLOR)
         return True
