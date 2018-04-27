@@ -159,12 +159,12 @@ def command_bomb(command, server):
 def command_heal(command, server):
     if(len(command) == 2):
         if(command[1] == "*"):
-            for char in self.model.characters:
+            for char in server.model.characters:
                 if char.health < HEALTH:
                     healing = HEALTH - char.health
                     char.health = HEALTH
                     for c in server.client_list:
-                        send_healing(c,char,healing)
+                        send_healing(c,char.nickname,healing)
             print("Everybody has been healed to base health!")
         else:
             char = server.model.look(command[1])
@@ -173,30 +173,31 @@ def command_heal(command, server):
             else:
                 if char.health < HEALTH:
                     healing = HEALTH - char.health
-                    char.health = HEALTH
                     for c in server.client_list:
-                        send_healing(c,char,healing)
+                        send_healing(c,char.nickname,healing)
+                    char.health = HEALTH
                 else:
-                    print(command[1] + "didn't needed to be heal to base health.")
+                    print(command[1] + " didn't needed to be heal to base health.")
     elif(len(command) == 3 and command[2].isdigit()):
         if(command[1] == "*"):
-            for char in self.model.characters:
+            for char in server.model.characters:
                 healing = int(command[2])
                 char.health += healing
-                    for c in server.client_list:
-                        send_healing(c,char,healing)
+                for c in server.client_list:
+                    send_healing(c,char.nickname,healing)
             print("Everybody has been healed " + command[2] + "life points!")
         else:
             char = server.model.look(command[1])
             if not char:
                 print(command[1]+" wasn't found on the server.")
             else:
-                healing = int(
-                char.health = HEALTH
-                    for c in server.client_list:
-                        send_healing(c,char,healing)
-                else:
-                    print(command[1] + "didn't needed to be heal to base health.")
+                healing = int(command[2])
+                for c in server.client_list:
+                    send_healing(c,char.nickname,healing)
+                char.health =+ healing
+                print(command[1] + " has been healed " + command[2] + "points !")
+    else:
+        print("If you want to be a nice person, you can heal people with \"heal <nickname> < number of life points to give>\". \n If no number is given, player will go back to base health. \nTo heal all players, you can type \"*\" instead of the nickname")
         
 
 def fun_commands(server):
@@ -204,26 +205,15 @@ def fun_commands(server):
         command = input("")
         if command == "quit" or command == "exit":
             break
+        command = command.split(" ")
         if command[0] == "kill":
             kill_command(command, server)
         elif command[0] == "fruit":
-            if(len(command)==1):
-                fruit = Fruit(random.choice(FRUITS), server.model.map, server.model.map.random())
-                server.model.fruits.append(fruit)
-                for c in server.client_list:
-                    send_fruit(c, fruit)
-            elif (len(command) > 2 or not (command[1].isdigit())):
-                print(SERVER_CONSOLE_COLOR + "You can add a fruit on the board with the command \"fruit\" (this one is hard to guess) \n to add multiple fruits, type \"fruit <number of fruit in digits>\"" + DEFAULT_COLOR)
-            else:
-                nb = int(command[1])
-                if nb > FRUIT_SPAWN_LIMIT:
-                    nb = FRUIT_SPAWN_LIMIT
-                    print(SERVER_CONSOLE_COLOR + "Don't spawn too much fruits please, that's not funny. \n" + str(FRUIT_SPAWN_LIMIT) +" is enough" + DEFAULT_COLOR)
-                for i in range(nb):
-                    fruit = Fruit(random.choice(FRUITS), server.model.map, server.model.map.random())
-                    server.model.fruits.append(fruit)
-                    for c in server.client_list:
-                        send_fruit(c, fruit)
+            command_fruit(command, server)
+        elif command[0] == "bomb":
+            command_bomb(command, server)
+        elif command[0] == "heal":
+            command_heal(command,server)
         else:
             print(SERVER_CONSOLE_COLOR + "Command unknown!" + DEFAULT_COLOR)
 
@@ -244,7 +234,7 @@ def parse_message(msg):
         return FRUIT_CODE
     elif msg == "pm":
         return PM_CODE
-    elif msg == "heal"
+    elif msg == "heal":
         return HEAL_CODE
     return REMOVE_CODE
     
@@ -298,8 +288,8 @@ def send_quit_character(connexion, nickname):
     send_size(connexion, remove_str)
     connexion.send(remove_str)
 
-def send_healing(connexion, character, healing):
-    healing_str = "heal:" + character_to_str(character) + ":" + str(healing)
+def send_healing(connexion, nickname, healing):
+    healing_str = "heal:" + nickname + ":" + str(healing)
     healing_str = healing_str.encode()
     send_size(connexion, healing_str)
     connexion.send(healing_str)
@@ -597,7 +587,7 @@ class NetworkClientController:
                 tab.remove(tab[0])
                 print(":".join(tab))
             if msg_type == HEAL_CODE:
-                char = str_to_character(tab[1])
-                char.health += tab[2]
-                print(SERVER_CONSOLE_COLOR + char.nickname + "has been healed, his health is now" + tab[2] + "!" + DEFAULT_COLOR)
+                char = self.model.look(tab[1])
+                char.health += int(tab[2])
+                print(SERVER_CONSOLE_COLOR + char.nickname + "has been healed, his health is now " + str(char.health) + "!" + DEFAULT_COLOR)
         return True
