@@ -52,6 +52,9 @@ CHAT_COLOR = "\x1b[0m"
 PM_COLOR = "\x1b[1;35;40m"
 DEFAULT_COLOR = "\x1b[0m"
 
+def print_server_console_msg(msg):
+    print(SERVER_CONSOLE_COLOR + msg + DEFAULT_COLOR)
+
 ### Class Map ###
 
 class Map:
@@ -66,7 +69,7 @@ class Map:
             for row in _file:
                 _row = []
                 for square in row:
-                    if square != '\n':
+                    if (square != '\n'):
                         _row.append(square)
                 _array.append(_row)
             self.array = _array
@@ -77,9 +80,9 @@ class Map:
         while True:
             x = random.randint(0, self.width-1)
             y = random.randint(0, self.height-1)
-            if self.array[y][x] in BACKGROUNDS:
+            if (self.array[y][x] in BACKGROUNDS):
                 break
-        return (x,y)
+        return (x, y)
 
 ### Class Fruit ###
 
@@ -100,13 +103,17 @@ class Bomb:
         self.time_to_explode = (COUNTDOWN+1)*1000-1 # in ms
         # compute bomb range
         for xmax in range(self.pos[X], self.pos[X]+self.max_range+1):
-            if xmax >= m.width or self.map.array[self.pos[Y]][xmax] not in BACKGROUNDS: break
+            if (xmax >= m.width or self.map.array[self.pos[Y]][xmax] not in BACKGROUNDS):
+                break
         for ymax in range(self.pos[Y], self.pos[Y]+self.max_range+1):
-            if ymax >= m.height or self.map.array[ymax][self.pos[X]] not in BACKGROUNDS: break
+            if (ymax >= m.height or self.map.array[ymax][self.pos[X]] not in BACKGROUNDS):
+                break
         for xmin in range(self.pos[X], self.pos[X]-self.max_range-1, -1):
-            if xmin < 0 or self.map.array[self.pos[Y]][xmin] not in BACKGROUNDS: break
+            if (xmin < 0 or self.map.array[self.pos[Y]][xmin] not in BACKGROUNDS):
+                break
         for ymin in range(self.pos[Y], self.pos[Y]-self.max_range-1, -1):
-            if ymin < 0 or self.map.array[ymin][self.pos[X]] not in BACKGROUNDS: break
+            if (ymin < 0 or self.map.array[ymin][self.pos[X]] not in BACKGROUNDS):
+                break
         self.range = [xmin+1, xmax-1, ymin+1, ymax-1]
 
     def tick(self, dt):
@@ -132,55 +139,61 @@ class Character:
 
     def move(self, direction):
         # move right
-        if direction == DIRECTION_RIGHT:
-            if self.pos[X] < (self.map.width - 1):
-                if self.map.array[self.pos[Y]][self.pos[X] + 1] not in WALLS:
+        if (direction == DIRECTION_RIGHT):
+            if (self.pos[X] < (self.map.width - 1)):
+                if (self.map.array[self.pos[Y]][self.pos[X] + 1] not in WALLS):
                     self.pos = (self.pos[X]+1, self.pos[Y])
             self.direction = DIRECTION_RIGHT
         # move left
         elif direction == DIRECTION_LEFT:
-            if self.pos[X] > 0:
-                if self.map.array[self.pos[Y]][self.pos[X] - 1] not in WALLS:
+            if (self.pos[X] > 0):
+                if (self.map.array[self.pos[Y]][self.pos[X] - 1] not in WALLS):
                     self.pos = (self.pos[X]-1, self.pos[Y])
             self.direction = DIRECTION_LEFT
         # move up
         elif direction == DIRECTION_UP:
-            if self.pos[Y] > 0:
-                if self.map.array[self.pos[Y] - 1][self.pos[X]] not in WALLS:
+            if (self.pos[Y] > 0):
+                if (self.map.array[self.pos[Y] - 1][self.pos[X]] not in WALLS):
                     self.pos = (self.pos[X], self.pos[Y]-1)
             self.direction = DIRECTION_UP
         # move down
         elif direction == DIRECTION_DOWN:
-            if self.pos[Y] < (self.map.height - 1):
-                if self.map.array[self.pos[Y] + 1][self.pos[X]] not in WALLS:
+            if (self.pos[Y] < (self.map.height - 1)):
+                if (self.map.array[self.pos[Y] + 1][self.pos[X]] not in WALLS):
                     self.pos = (self.pos[X], self.pos[Y]+1)
             self.direction = DIRECTION_DOWN
 
     def eat(self, fruit):
-        if fruit.pos[X] == self.pos[X] and fruit.pos[Y] == self.pos[Y]:
+        if (fruit.pos[X] == self.pos[X] and fruit.pos[Y] == self.pos[Y]):
             self.health += 10
-            print(SERVER_CONSOLE_COLOR + "{}\'s health: {}".format(self.nickname, self.health) + DEFAULT_COLOR)
+            print_server_console_msg("{}\'s health: {}".format(self.nickname, self.health))
             return True
         return False
 
     def tick(self, dt):
         # subtract the passed time `dt` from the timer each frame
-        if self.immunity > 0: self.immunity -= dt
-        else: self.immunity = 0
-        if self.disarmed > 0: self.disarmed -= dt
-        else: self.disarmed = 0
+        if (self.immunity > 0):
+            self.immunity -= dt
+        else:
+            self.immunity = 0
+        if (self.disarmed > 0):
+            self.disarmed -= dt
+        else:
+            self.disarmed = 0
 
     def explosion(self, bomb):
-        if bomb.countdown != 0: return False
-        if self.immunity > 0: return False
+        if (bomb.countdown != 0):
+            return False
+        if (self.immunity > 0):
+            return False
         horizontal = (self.pos[Y] == bomb.pos[Y] and self.pos[X] >= bomb.range[DIRECTION_LEFT] and self.pos[X] <= bomb.range[DIRECTION_RIGHT])
         vertical = (self.pos[X] == bomb.pos[X] and self.pos[Y] >= bomb.range[DIRECTION_UP] and self.pos[Y] <= bomb.range[DIRECTION_DOWN])
         if ( horizontal or vertical ):
             self.health -= 10
             self.immunity = IMMUNITY
-            print(SERVER_CONSOLE_COLOR + "{}\'s health: {}".format(self.nickname, self.health) + DEFAULT_COLOR)
+            print_server_console_msg("{}\'s health: {}".format(self.nickname, self.health))
         if self.health <= 0:
-            print(SERVER_CONSOLE_COLOR + "{} is dead!".format(self.nickname) + DEFAULT_COLOR)
+            print_server_console_msg("{} is dead!".format(self.nickname))
             return True
         return False
 
@@ -210,39 +223,45 @@ class Model:
     # kill a character
     def kill_character(self, nickname):
         character = self.look(nickname)
-        if not character:
-            print(SERVER_CONSOLE_COLOR + "Error: nickname {} not found!".format(nickname) + DEFAULT_COLOR)
+        if (not character):
+            print_server_console_msg("Error: nickname {} not found!".format(nickname))
             sys.exit(1)
         self.characters.remove(character)
-        if self.player == character: self.player = None
+        if (self.player == character):
+            self.player = None
         #print(SERVER_CONSOLE_COLOR + "=> kill \"{}\"".format(nickname) + DEFAULT_COLOR)
         return character
 
     # quit game
     def quit(self, nickname = None):
         cont = True
-        if self.player and self.player.nickname == nickname:
+        if (self.player and self.player.nickname == nickname):
             cont = False
         character = self.look(nickname)
-        if character: self.kill_character(nickname)
-        print(SERVER_CONSOLE_COLOR + "{} left the game.".format(nickname) + DEFAULT_COLOR)
+        if (character):
+            self.kill_character(nickname)
+        print_server_console_msg("{} left the game.".format(nickname))
         return cont
 
     # add a new fruit
     def add_fruit(self, kind = None, pos = None):
-        if pos is None: pos = self.map.random()
-        if kind is None: kind = random.choice(FRUITS)
+        if (pos is None):
+            pos = self.map.random()
+        if (kind is None):
+            kind = random.choice(FRUITS)
         self.fruits.append(Fruit(kind, self.map, pos))
         #print("=> add fruit ({}) at position ({},{})".format(FRUITS_STR[kind], pos[X], pos[Y]))
 
     # add a new character
     def add_character(self, nickname, isplayer = False, kind = None, pos = None):
         character = self.look(nickname)
-        if character:
-            print(SERVER_CONSOLE_COLOR + "Error: nickname \"{}\" already used!".format(nickname) + DEFAULT_COLOR)
+        if (character):
+            print_server_console_msg("Error: nickname \"{}\" already used!".format(nickname))
             sys.exit(1)
-        if pos is None: pos = self.map.random()
-        if kind is None: kind = random.choice(CHARACTERS)
+        if (pos is None):
+            pos = self.map.random()
+        if (kind is None):
+            kind = random.choice(CHARACTERS)
         character = Character(nickname, kind, self.map, pos)
         #print("=> add character \"{}\" ({}) as position ({},{})".format(nickname, CHARACTERS_STR[kind], pos[X], pos[Y]))
         self.characters.append(character)
@@ -252,10 +271,10 @@ class Model:
     # drop a bomb
     def drop_bomb(self, nickname):
         character = self.look(nickname)
-        if not character:
-            print(SERVER_CONSOLE_COLOR + "Error: nickname \"{}\" not found!".format(nickname) + DEFAULT_COLOR)
+        if (not character):
+            print_server_console_msg("Error: nickname \"{}\" not found!".format(nickname))
             sys.exit(1)
-        if character.disarmed == 0:
+        if (character.disarmed == 0):
             self.bombs.append(Bomb(self.map, character.pos))
             character.disarmed = DISARMED
         #print("=> drop bomb at position ({},{})".format(character.pos[X], character.pos[Y]))
@@ -263,8 +282,8 @@ class Model:
     # move a character
     def move_character(self, nickname, direction):
         character = self.look(nickname)
-        if not character:
-            print(SERVER_CONSOLE_COLOR + "Error: nickname \"{}\" not found!".format(nickname) + DEFAULT_COLOR)
+        if (not character):
+            print_server_console_msg("Error: nickname \"{}\" not found!".format(nickname))
             sys.exit(1)
         character.move(direction)
         #print("=> move {} \"{}\" at position ({},{})".format(DIRECTIONS_STR[direction], nickname, character.pos[X], character.pos[Y]))
@@ -274,20 +293,20 @@ class Model:
         # update bombs (and remove it)
         for bomb in self.bombs:
             bomb.tick(dt)
-            if bomb.countdown == -1:
+            if (bomb.countdown == -1):
                 self.bombs.remove(bomb)
 
         # update characters and eat fruits
         for character in self.characters:
             character.tick(dt)
             for fruit in self.fruits:
-                if character.eat(fruit):
+                if (character.eat(fruit)):
                     self.fruits.remove(fruit)
 
         # update characters after bomb explosion
         for bomb in self.bombs:
             for character in self.characters:
-                if character.explosion(bomb):
+                if (character.explosion(bomb)):
                     self.characters.remove(character)
-                    if character == self.player:
+                    if (character == self.player):
                         self.player = None

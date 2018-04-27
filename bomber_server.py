@@ -18,10 +18,10 @@ print("pygame version: ", pygame.version.ver)
 ################################################################################
 
 # parse arguments
-if len(sys.argv) == 2:
+if (len(sys.argv) == 2):
     port = int(sys.argv[1])
     map_file = DEFAULT_MAP
-elif len(sys.argv) == 3:
+elif (len(sys.argv) == 3):
     port = int(sys.argv[1])
     map_file = sys.argv[2]
 else:
@@ -38,7 +38,6 @@ model.load_map(map_file)
 #for _ in range(10): model.add_fruit()
 server = NetworkServerController(model, port)
 #view = GraphicView(model, "server")
-end = False
 commands = threading.Thread(None, fun_commands, None, (server,))
 commands.daemon = True
 commands.start()
@@ -50,9 +49,9 @@ while True:
     server.tick(dt, map_file)
     model.tick(dt)
     #view.tick(dt)
-    if not commands.is_alive():
+    if (not commands.is_alive()):
         break
 
 # quit
-print("Thanks for playing!")
+print_server_console_msg("Thanks for playing!")
 pygame.quit()

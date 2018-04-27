@@ -18,7 +18,7 @@ print("pygame version: ", pygame.version.ver)
 ################################################################################
 
 # parse arguments
-if len(sys.argv) != 4:
+if (len(sys.argv) != 4):
     print("Usage: {} host port nickname".format(sys.argv[0]))
     sys.exit()
 host = sys.argv[1]
@@ -41,12 +41,17 @@ chat.start()
 # main loop
 while True:
     # make sure game doesn't run at more than FPS frames per second
+    if (not chat.is_alive()):
+        print_server_console_msg("Thanks for playing!")
+        pygame.quit()
+        sys.exit()
     dt = clock.tick(FPS)
     cont = kb.tick(dt)
-    if not client.tick(dt, cont): break
+    if (not client.tick(dt, cont)):
+        break
     model.tick(dt)
     view.tick(dt)
 
 # quit
-print("Game Over!")
+print_server_console_msg("Game Over!")
 pygame.quit()
